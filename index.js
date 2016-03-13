@@ -1,34 +1,40 @@
 var five = require("johnny-five");
 var temporal = require('temporal');
+var configurations = require('./lib/configurations');
 var ik = require('./lib/ik');
-var coordinates = require('./lib/coordinates');
+var mechanics = require('./lib/mechanics');
 
 function Deltabot( opts ) {
 
-  opts = opts || {};
-  var pins = opts.pins || [ 9, 10, 11 ];
-  var range = opts.range || [0,90];
-  var startAt = opts.startAt || 5;
+  // If we passed in a valid configuration type, let's grab that now
+  var configuration = ( opts.type && configurations[ opts.type ] ) || {};
+
+  // Configuration cascade: default options < configuration settings < explicit options
+  this.opts = Object.assign({
+    pins: [8, 9, 10],
+    range: [0, 90],
+    startAt: 5
+  }, configuration, opts);
+
+  this.ik = new ik( this.opts.dimensions );
 
   this.servos = [
     five.Servo({
-      pin: pins[0],
-      range: range,
-      startAt: startAt
+      pin: this.opts.pins[0],
+      range: this.opts.range,
+      startAt: this.opts.startAt
     }),
     five.Servo({
-      pin: pins[1],
-      range: range,
-      startAt: startAt
+      pin: this.opts.pins[1],
+      range: this.opts.range,
+      startAt: this.opts.startAt
     }),
     five.Servo({
-      pin: pins[2],
-      range: range,
-      startAt: startAt
+      pin: this.opts.pins[2],
+      range: this.opts.range,
+      startAt: this.opts.startAt
     })
   ];
-
-  this.ik = new ik();
 
   this.home();
 };
@@ -43,26 +49,61 @@ Deltabot.prototype.home = function() {
   });
 };
 
-Deltabot.prototype.go = function(x, y, z) {
-  var reflected = coordinates.reflect(x,y);
-  var rotated = coordinates.rotate(reflected[0],reflected[1]);
-  var angles = this.ik.inverse( rotated[0], rotated[1], z );
-  var mappedAngles = angles.slice(1).map(function(angle) {
-    return coordinates.mapValue( angle, 0, 90, 8, 90 );
-  });
-  this.servos[0].to( mappedAngles[0] );
-  this.servos[1].to( mappedAngles[1] );
-  this.servos[2].to( mappedAngles[2] );
+Deltabot.prototype.moveTo = function(coords) {
+
+  if ( this.opts.reflectY ) {
+    coords = mechanics.reflectY(coords);
+  }
+  if ( this.opts.reflectX ) {
+    coords = mechanics.reflectX(coords);
+  }
+  if ( this.opts.rotate ) {
+    coords = mechanics.rotate(coords, this.opts.rotate);
+  }
+
+  var result = this.ik.inverse( coords[0], coords[1], coords[2] );
+  var error = result[0];
+  var angles = result.slice(1);
+
+  if ( this.opts.operatingRange ) {
+    angles = mechanics.mapAngles( angles, this.opts.range, this.opts.operatingRange );
+  }
+
+  this.servos[0].to( Math.round( angles[0] ) );
+  this.servos[1].to( Math.round( angles[1] ) );
+  this.servos[2].to( Math.round( angles[2] ) );
 };
 
-// Deltabot.prototype.position = function() {
-//   var degrees = this.servos.map(function(servo) {
-//     return servo.last.degrees;
-//   });
-//   return ik.forward( degrees[0], degrees[1], degrees[2] );
-// }
-//
-//
+Deltabot.prototype.getServoPositions = function() {
+  return this.servos.map(function(servo) {
+    return servo.last.degrees;
+  });
+};
+
+Deltabot.prototype.getPosition = function(angles) {
+  angles = angles || this.getServoPositions();
+
+  if ( this.opts.operatingRange ) {
+    angles = mechanics.mapAngles( angles, this.opts.operatingRange, this.opts.range );
+  }
+
+  var result = this.ik.forward( angles[0], angles[1], angles[2] );
+  var error = result[0];
+  var position = result.slice(1);
+
+  if ( this.opts.rotate ) {
+    position = mechanics.rotate(position, -this.opts.rotate);
+  }
+  if ( this.opts.reflectX ) {
+    position = mechanics.reflectX(position);
+  }
+  if ( this.opts.reflectY ) {
+    position = mechanics.reflectY(position);
+  }
+
+  return [0, position[0], position[1], position[2] ];
+};
+
 // Deltabot.prototype.tap = function(x,y) {
 //   temporal.queue([
 //     {

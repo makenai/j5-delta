@@ -11,7 +11,7 @@ function Deltabot( opts ) {
 
   // Configuration cascade: default options < configuration settings < explicit options
   this.opts = Object.assign({
-    pins: [8, 9, 10],
+    pins: [9, 10, 11],
     range: [0, 90],
     startAt: 5
   }, configuration, opts);
@@ -79,6 +79,10 @@ Deltabot.prototype.getServoPositions = function() {
     return servo.last.degrees;
   });
 };
+
+Deltabot.calcTimeToMove = function(coords) {
+  var lastPositions = this.getServoAngles();
+}
 
 Deltabot.prototype.getPosition = function(angles) {
   angles = angles || this.getServoPositions();

@@ -6,6 +6,9 @@
   "scripts": {
     "test": "mocha"
   },
+  "bin": {
+    "delta": "bin/delta.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/makenai/j5-delta.git"

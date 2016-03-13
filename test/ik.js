@@ -108,12 +108,6 @@ describe('ik', function() {
       '11, 11, 11'
     );
 
-    // assertValuesApproximately(
-    //   ik.forward(10.735063984293673, 8.00233754119601, 28.256702834477853),
-    //   [ 0, 22.99038105676658, -9.82050807568877, -140 ],
-    //   '10, 8, 28'
-    // );
-
   });
 
   it('can do a round trip conversion', function() {
@@ -132,6 +126,8 @@ describe('ik', function() {
     roundTrip(20, -15, -140);
 
     roundTrip(22.99038105676658, -9.82050807568877, -140)
+
+    roundTrip(50,-50,-130);
 
   });
 

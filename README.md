@@ -8,6 +8,7 @@
 
 ```javascript
 var five = require("johnny-five");
+var Deltabot = require('j5-delta');
 var board = new five.Board();
 
 board.on("ready", function() {
@@ -71,13 +72,13 @@ deltabot.moveTo([20, -20, -140]);
 deltabot.getPosition(); // [ 0, 19.61168100866987, -20.1826220029087, -140.14643590955427 ]
 ```
 
-### getServoPositions()
+### getServoAngles()
 
 Get the current positions of each of the three servo motors in degrees.
 
 ```javascript
 deltabot.moveTo([45, -32, -150]);
-deltabot.getServoPositions(); // [ 22, 17, 56 ]
+deltabot.getServoAngles(); // [ 22, 17, 56 ]
 ```
 
 

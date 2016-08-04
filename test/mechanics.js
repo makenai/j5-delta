@@ -39,4 +39,36 @@ describe('mechanics', function() {
 
   });
 
+  describe('calcLargestMovement', function() {
+
+    it('can figure out how many degrees the largest move is', function() {
+
+      assert.equal(
+        mechanics.calcLargestMovement(
+          [-30, 10, 5],
+          [ 30, 15, 1]
+        ),
+        60
+      );
+
+      assert.equal(
+        mechanics.calcLargestMovement(
+          [ 10, 10, 5 ],
+          [ 15, 12, 4 ]
+        ),
+        5
+      );
+
+      assert.equal(
+        mechanics.calcLargestMovement(
+          [ 15, 12, 4 ],
+          [ 10, 10, 5 ]
+        ),
+        5
+      );
+
+    });
+
+  })
+
 });

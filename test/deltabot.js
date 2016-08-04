@@ -22,7 +22,8 @@ function getLastServoPositions(spy) {
 describe('Deltabot', function() {
 
   var deltabot = new Deltabot({
-    type: 'tapster'
+    type: 'tapster',
+    pins: [ 9, 10, 11 ]
   });
 
   describe('home', function() {
@@ -48,6 +49,20 @@ describe('Deltabot', function() {
       servoTo.restore();
     });
 
+    it('issues an optional callback when done', function(done) {
+      var servoTo = sinon.spy(five.Servo.prototype, "to");
+      deltabot.moveTo([10, 20, -140], function() {
+        var positions = getLastServoPositions(servoTo);
+        assert.deepEqual( positions, [ 6, 26, 15 ] );
+        servoTo.restore();
+        done();
+      });
+    });
+
+  });
+
+  describe('getEnvelope', function() {
+    var bounds = deltabot.getEnvelope();
   });
 
   describe('getPosition', function() {

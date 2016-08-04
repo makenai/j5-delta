@@ -26,6 +26,9 @@ board.on("ready", function() {
     },
     help: function() {
       printHelp();
+    },
+    tap: function(x,y) {
+      deltabot.tap(x,y);
     }
   });
 

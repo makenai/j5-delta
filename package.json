@@ -21,19 +21,31 @@
   ],
   "author": "Pawel Szymczykowski <makenai@gmail.com>",
   "contributors": [
-    { "name": "Jason Huggins", "email": "jrhuggins@gmail.com" },
-    { "name": "Erik Kastner", "email": "kastner@gmail.com" },
-    { "name": "Jason Fox", "email": "jasonrobertfox@gmail.com" },
-    { "name": "Chris G. Williams", "email": "chilliams@gmail.com" }
+    {
+      "name": "Jason Huggins",
+      "email": "jrhuggins@gmail.com"
+    },
+    {
+      "name": "Erik Kastner",
+      "email": "kastner@gmail.com"
+    },
+    {
+      "name": "Jason Fox",
+      "email": "jasonrobertfox@gmail.com"
+    },
+    {
+      "name": "Chris G. Williams",
+      "email": "chilliams@gmail.com"
+    }
   ],
-  "license": "BSD",
+  "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/makenai/j5-delta/issues"
   },
   "homepage": "https://github.com/makenai/j5-delta#readme",
   "dependencies": {
-    "johnny-five": "^0.9.30",
-    "temporal": "^0.5.0"
+    "d3-queue": "^2.0.3",
+    "johnny-five": "^0.9.30"
   },
   "devDependencies": {
     "chai": "^3.5.0",

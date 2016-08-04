@@ -4,7 +4,12 @@ var fuzzy = require('./helpers/fuzzy')
 
 describe('ik', function() {
 
-  var ik = new IK();
+  var ik = new IK({
+    f: 110.85125168440814,
+    e: 34.64101615137754,
+    rf: 52.690131903421914,
+    re: 153.5
+  });
 
   it('converts coordinates to delta angles', function() {
 

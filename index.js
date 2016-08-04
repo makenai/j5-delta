@@ -1,8 +1,8 @@
 var five = require("johnny-five");
-var temporal = require('temporal');
 var configurations = require('./lib/configurations');
 var ik = require('./lib/ik');
 var mechanics = require('./lib/mechanics');
+var d3 = require('d3-queue');
 
 function Deltabot( opts ) {
 
@@ -11,9 +11,10 @@ function Deltabot( opts ) {
 
   // Configuration cascade: default options < configuration settings < explicit options
   this.opts = Object.assign({
-    pins: [9, 10, 11],
     range: [0, 90],
-    startAt: 5
+    startAt: 5,
+    servoSpeed: 0.40, // HS-311 0.19 (4.8v) / 0.15 (6.0v) sec @ 60 deg.
+    tapDepth: -160
   }, configuration, opts);
 
   this.ik = new ik( this.opts.dimensions );
@@ -21,20 +22,25 @@ function Deltabot( opts ) {
   this.servos = [
     five.Servo({
       pin: this.opts.pins[0],
+      board: this.opts.board,
       range: this.opts.range,
       startAt: this.opts.startAt
     }),
     five.Servo({
       pin: this.opts.pins[1],
+      board: this.opts.board,
       range: this.opts.range,
       startAt: this.opts.startAt
     }),
     five.Servo({
       pin: this.opts.pins[2],
+      board: this.opts.board,
       range: this.opts.range,
       startAt: this.opts.startAt
     })
   ];
+
+  this.queue = d3.queue(1);
 
   this.home();
 };
@@ -49,7 +55,11 @@ Deltabot.prototype.home = function() {
   });
 };
 
-Deltabot.prototype.moveTo = function(coords) {
+Deltabot.prototype.getEnvelope = function() {
+  return this.ik.envelope( this.opts.range );
+};
+
+Deltabot.prototype.moveTo = function(coords, callback) {
 
   if ( this.opts.reflectY ) {
     coords = mechanics.reflectY(coords);
@@ -69,23 +79,35 @@ Deltabot.prototype.moveTo = function(coords) {
     angles = mechanics.mapAngles( angles, this.opts.range, this.opts.operatingRange );
   }
 
-  this.servos[0].to( Math.round( angles[0] ) );
-  this.servos[1].to( Math.round( angles[1] ) );
-  this.servos[2].to( Math.round( angles[2] ) );
+  angles = mechanics.roundAngles( angles );
+
+  this.queue.defer(function(angles, done) {
+    var moveTime = this.calcTimeToMove( angles );
+    this.servos[0].to( angles[0] );
+    this.servos[1].to( angles[1] );
+    this.servos[2].to( angles[2] );
+    setTimeout(function() {
+      if (callback) callback();
+      done();
+    }, moveTime );
+  }.bind(this), angles);
+
 };
 
-Deltabot.prototype.getServoPositions = function() {
+Deltabot.prototype.getServoAngles = function() {
   return this.servos.map(function(servo) {
     return servo.last.degrees;
   });
 };
 
-Deltabot.calcTimeToMove = function(coords) {
+Deltabot.prototype.calcTimeToMove = function(newPositions) {
   var lastPositions = this.getServoAngles();
+  var maxDegrees = mechanics.calcLargestMovement( lastPositions, newPositions );
+  return Math.ceil( ( this.opts.servoSpeed / 60 ) * maxDegrees * 1000 );
 }
 
 Deltabot.prototype.getPosition = function(angles) {
-  angles = angles || this.getServoPositions();
+  angles = angles || this.getServoAngles();
 
   if ( this.opts.operatingRange ) {
     angles = mechanics.mapAngles( angles, this.opts.operatingRange, this.opts.range );
@@ -108,27 +130,20 @@ Deltabot.prototype.getPosition = function(angles) {
   return [0, position[0], position[1], position[2] ];
 };
 
-// Deltabot.prototype.tap = function(x,y) {
-//   temporal.queue([
-//     {
-//       delay: 1000,
-//       task: function() {
-//         this.go( x, y, -140 );
-//       }.bind(this)
-//     },
-//     {
-//       delay: 500,
-//       task: function() {
-//         this.go( x, y, -155 );
-//       }.bind(this)
-//     },
-//     {
-//       delay: 500,
-//       task: function() {
-//         this.go( x, y, -140 );
-//       }.bind(this)
-//     }
-//   ]);
-// };
+Deltabot.prototype.tap = function(x,y, callback) {
+  this.moveTo([ x, y, this.opts.tapDepth - 10 ]);
+  this.moveTo([ x, y, this.opts.tapDepth ]);
+  console.log([ x, y, this.opts.tapDepth ]);
+  this.moveTo([ x, y, this.opts.tapDepth - 10 ]);
+  this.moveTo([ 0, 0, this.opts.tapDepth - 30 ], callback);
+};
+
+Deltabot.prototype.draw = function(coords) {
+  this.moveTo([ coords[0][0], coords[0][1], this.opts.tapDepth - 10 ]);
+  coords.forEach(function(coord) {
+    this.moveTo([ coord[0], coord[1], this.opts.tapDepth ]);
+  }.bind(this));
+  this.moveTo([ 0, 0, this.opts.tapDepth - 30 ]);
+};
 
 module.exports = Deltabot;

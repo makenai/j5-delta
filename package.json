@@ -1,6 +1,6 @@
 {
   "name": "j5-delta",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Johnny-Five component for controlling delta robots, based on tapsterbot.",
   "main": "index.js",
   "scripts": {

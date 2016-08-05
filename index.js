@@ -131,19 +131,18 @@ Deltabot.prototype.getPosition = function(angles) {
 };
 
 Deltabot.prototype.tap = function(x,y, callback) {
-  this.moveTo([ x, y, this.opts.tapDepth - 10 ]);
+  this.moveTo([ x, y, this.opts.tapDepth + 10 ]);
   this.moveTo([ x, y, this.opts.tapDepth ]);
-  console.log([ x, y, this.opts.tapDepth ]);
-  this.moveTo([ x, y, this.opts.tapDepth - 10 ]);
-  this.moveTo([ 0, 0, this.opts.tapDepth - 30 ], callback);
+  this.moveTo([ x, y, this.opts.tapDepth + 10 ]);
+  this.moveTo([ 0, 0, this.opts.tapDepth + 30 ], callback);
 };
 
 Deltabot.prototype.draw = function(coords) {
-  this.moveTo([ coords[0][0], coords[0][1], this.opts.tapDepth - 10 ]);
+  this.moveTo([ coords[0][0], coords[0][1], this.opts.tapDepth + 10 ]);
   coords.forEach(function(coord) {
     this.moveTo([ coord[0], coord[1], this.opts.tapDepth ]);
   }.bind(this));
-  this.moveTo([ 0, 0, this.opts.tapDepth - 30 ]);
+  this.moveTo([ 0, 0, this.opts.tapDepth + 30 ]);
 };
 
 module.exports = Deltabot;
